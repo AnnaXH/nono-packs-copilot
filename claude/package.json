@@ -1,36 +1,40 @@
 {
   "schema_version": 1,
   "name": "claude",
-  "pack_type": "agent",
-  "description": "Sandbox awareness plugin for Claude Code. Provides diagnostics on permission denials and assists with profile authoring.",
+  "description": "Claude Code plugin and matching nono profile. Provides sandbox-aware diagnostics on permission failures and ships the claude-code profile via the registry.",
   "license": "Apache-2.0",
   "platforms": ["macos", "linux"],
-  "min_nono_version": "0.29.0",
+  "min_nono_version": "0.42.0",
   "artifacts": [
     {
-      "type": "policy",
+      "type": "profile",
       "path": "policy.json",
       "install_as": "claude-code"
     },
     {
       "type": "plugin",
-      "path": ".claude-plugin/plugin.json"
+      "path": ".claude-plugin/plugin.json",
+      "install_dir": "~/.claude/plugins/nono/.claude-plugin"
     },
     {
       "type": "plugin",
-      "path": "skills/nono-sandbox/SKILL.md"
+      "path": "hooks/hooks.json",
+      "install_dir": "~/.claude/plugins/nono/hooks"
     },
     {
       "type": "plugin",
-      "path": "hooks/hooks.json"
+      "path": "bin/nono-hook.sh",
+      "install_dir": "~/.claude/plugins/nono/bin"
     },
     {
       "type": "plugin",
-      "path": "bin/nono-hook.sh"
+      "path": "bin/nono-hook-bash.sh",
+      "install_dir": "~/.claude/plugins/nono/bin"
     },
     {
       "type": "plugin",
-      "path": "bin/nono-hook-bash.sh"
+      "path": "skills/nono-sandbox/SKILL.md",
+      "install_dir": "~/.claude/plugins/nono/skills/nono-sandbox"
     }
   ]
 }

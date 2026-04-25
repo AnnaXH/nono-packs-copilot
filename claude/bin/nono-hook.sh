@@ -1,9 +1,10 @@
 #!/bin/bash
 # nono-hook.sh - Claude Code plugin hook for nono sandbox diagnostics
-# Version: 1.1.0
+# Version: 1.2.0
 #
-# This hook fires on PostToolUseFailure and injects sandbox capability
-# information so Claude understands what went wrong and how to fix it.
+# Fires on PostToolUseFailure for Read|Write|Edit|Bash. Only injects sandbox
+# context when the failure looks like an actual sandbox denial — not for
+# generic tool errors (file too large, missing file, parse errors, etc.).
 
 # Only run if we're inside a nono sandbox
 if [ -z "$NONO_CAP_FILE" ] || [ ! -f "$NONO_CAP_FILE" ]; then
@@ -12,6 +13,20 @@ fi
 
 # Check if jq is available (required for JSON parsing)
 if ! command -v jq &> /dev/null; then
+    exit 0
+fi
+
+# Read the hook input from stdin. PostToolUseFailure passes the tool's failure
+# payload; the schema varies but the error string lives somewhere in the JSON,
+# so we grep the whole blob rather than guessing the exact field path.
+INPUT=$(cat)
+
+# Gate: only fire on actual sandbox denial patterns. Landlock surfaces EACCES,
+# Seatbelt surfaces "Operation not permitted" / EPERM, and the kernel/libc
+# wording is consistent across both platforms. Anything else (file too large,
+# file not found, parse errors, etc.) is not a sandbox issue and must not
+# trigger the "exit and restart" message.
+if ! echo "$INPUT" | grep -qiE 'operation not permitted|permission denied|EPERM|EACCES|sandbox.*denied|landlock'; then
     exit 0
 fi
 
