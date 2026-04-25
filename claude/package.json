@@ -18,11 +18,6 @@
     },
     {
       "type": "plugin",
-      "path": "hooks/hooks.json",
-      "install_dir": "~/.claude/plugins/nono/hooks"
-    },
-    {
-      "type": "plugin",
       "path": "bin/nono-hook.sh",
       "install_dir": "~/.claude/plugins/nono/bin"
     },
