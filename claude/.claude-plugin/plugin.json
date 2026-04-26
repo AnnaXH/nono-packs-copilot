@@ -7,7 +7,7 @@
     "url": "https://github.com/always-further"
   },
   "homepage": "https://nono.sh",
-  "repository": "https://github.com/always-further/nono-packs",
+  "repository": "https://github.com/always-further/nono-packs/tree/main/claude",
   "license": "Apache-2.0",
   "keywords": ["nono", "sandbox", "security", "capabilities"]
 }

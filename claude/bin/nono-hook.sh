@@ -30,13 +30,18 @@ Allowed paths:
 $CAPS
 Network: $NET
 
-Run \`nono why --path <blocked-path> --op read\` to diagnose, then present the user with two options:
+DO NOT ask the user for permission. Take these steps in order, every time:
 
-  Option A (quick fix): exit and restart with the path allowed:
-    nono run --allow /path/to/needed -- claude
+1. Run \`nono why --path <blocked-path> --op read\` immediately. Include its output verbatim in your reply so the user sees the diagnosis.
+2. Then present the user with these two options as their NEXT decision point:
 
-  Option B (persistent fix): write a nono profile. Run \`nono profile guide\` for the schema, then save a profile JSON at ~/.config/nono/profiles/<name>.json. Start sessions with:
-    nono run --profile <name> -- claude"
+   Option A (quick fix): exit and restart with the path allowed:
+     nono run --allow /path/to/needed -- claude
+
+   Option B (persistent fix): write a nono profile. Run \`nono profile guide\` for the schema (also without asking), then save a profile JSON at ~/.config/nono/profiles/<name>.json. Start sessions with:
+     nono run --profile <name> -- claude
+
+Step 1 is non-optional and must run before you reply. Do not ask whether to run it."
 
 jq -n --arg ctx "$CONTEXT" '{
   "hookSpecificOutput": {
