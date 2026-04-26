@@ -22,7 +22,9 @@ jobs:
           registry-url: https://registry.nono.sh/api/v1
           files: |
             .claude-plugin/plugin.json
+            hooks/hooks.json
             skills/nono-sandbox/SKILL.md
+            bin/nono-hook.sh
             bin/nono-hook-bash.sh
             package.json
             policy.json
