@@ -1,10 +1,11 @@
 #!/bin/bash
 # nono-hook-session.sh - Codex SessionStart hook
-# Version: 1.0.0
+# Version: 1.1.0
 #
-# Pre-loads the nono sandbox boundary into the conversation so Codex
-# understands the limits from turn 1 and won't reach for "macOS TCC" or
-# "chmod" diagnoses on the first denial.
+# Brief boundary statement at session start. Deliberately does NOT
+# enumerate allowed paths — that lives in `nono why <path>` and on
+# hook fire, not in every session header. Earlier versions emitted
+# the full allow list which crowded the conversation with noise.
 #
 # Schema reference:
 #   https://github.com/openai/codex/blob/main/codex-rs/hooks/schema/generated/session-start.command.output.schema.json
@@ -16,25 +17,9 @@ if ! command -v jq &> /dev/null; then
     exit 0
 fi
 
-CAPS=$(jq -r '.fs[] | "  " + (.resolved // .path) + " (" + .access + ")"' "$NONO_CAP_FILE" 2>/dev/null)
-NET=$(jq -r 'if .net_blocked then "blocked" else "allowed" end' "$NONO_CAP_FILE" 2>/dev/null)
+CONTEXT="You are running inside a nono security sandbox (Landlock on Linux, Seatbelt on macOS). Filesystem and network access is OS-enforced — there is no way to escape from inside this session.
 
-CONTEXT="You are running inside a nono security sandbox. Filesystem and network access is enforced at the OS level (Landlock on Linux, Seatbelt on macOS) — there is NO escape from inside the session.
-
-Allowed paths:
-$CAPS
-Network: $NET
-
-When a tool call fails with \"Operation not permitted\", \"Permission denied\", EACCES, or EPERM, the cause is this sandbox boundary — not a Codex permission, not macOS TCC, not Unix file permissions. Do not suggest System Settings, Privacy & Security, chmod, or sudo.
-
-To diagnose a denial:
-  nono why --path <blocked-path> --op read
-
-To grant access:
-  Option A: exit and restart with --allow <path> on the nono command.
-  Option B: write a profile that extends the active one and adds the path,
-           save it under ~/.config/nono/profiles/<name>.json, then start with
-           --profile <name>."
+When a tool call fails with \"Operation not permitted\", \"Permission denied\", EACCES, EPERM, or \"landlock\": the cause is this sandbox, NOT macOS TCC, NOT Unix file permissions, NOT a Codex approval. Do not suggest System Settings, chmod, or sudo. The PostToolUse hook will inject the diagnostic and the user's two options whenever this happens — wait for it rather than guessing."
 
 jq -n --arg ctx "$CONTEXT" '{
   "hookSpecificOutput": {

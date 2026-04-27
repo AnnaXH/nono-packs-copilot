@@ -1,12 +1,15 @@
 #!/bin/bash
 # nono-hook.sh - Codex PostToolUse hook for nono sandbox diagnostics
-# Version: 1.0.0
+# Version: 1.1.0
 #
-# Fires after every Bash / apply_patch invocation. When the tool_response
-# matches a sandbox-denial signature, returns a JSON block with both a
-# user-facing `reason` and an agent-facing `additionalContext` so the
-# user sees the boundary message verbatim and the agent has the full
-# diagnostic available for follow-up turns.
+# Splits user-visible from agent-visible content so the conversation
+# stays readable:
+#   `reason`            = ONE-LINE user-visible block reason.
+#   `additionalContext` = full diagnostic + Option A/B template, only
+#                         visible to the agent on follow-up turns.
+#
+# Earlier versions emitted the same wall-of-text in both fields and
+# duplicated the allow-list dump that SessionStart already provides.
 #
 # Schema reference:
 #   https://github.com/openai/codex/blob/main/codex-rs/hooks/schema/generated/post-tool-use.command.output.schema.json
@@ -20,76 +23,59 @@ fi
 
 INPUT=$(cat)
 
-# Be silent in bypassPermissions mode — the user has explicitly opted
-# into yolo and probably doesn't want a wall of guidance per denial.
+# Silent in bypassPermissions mode — user has explicitly opted out
+# of sandbox-aware nudges.
 PMODE=$(echo "$INPUT" | jq -r '.permission_mode // "default"' 2>/dev/null)
-if [ "$PMODE" = "bypassPermissions" ]; then
-    exit 0
-fi
+[ "$PMODE" = "bypassPermissions" ] && exit 0
 
-# tool_response is `true` (any) in the schema — coerce to a string for
-# greppability, regardless of whether it's a JSON object or scalar.
+# Gate on actual sandbox-denial signatures only. Anything else (file
+# too large, file not found, parse errors) is not a sandbox issue.
 TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response | tostring' 2>/dev/null)
 if ! echo "$TOOL_RESPONSE" | grep -qiE 'operation not permitted|permission denied|EPERM|EACCES|landlock|sandbox.*denied'; then
     exit 0
 fi
 
-# Best-effort: pull the first absolute path mentioned in the response.
 FAILED_PATH=$(echo "$TOOL_RESPONSE" | grep -oE '/[^[:space:]"'"'"']+' | head -n 1)
+DISPLAY_PATH="${FAILED_PATH:-<blocked-path>}"
 
 # Pack identity. Hardcoded — the pack ships with `install_as: codex`,
-# so suggesting `extends: "codex"` is correct for any user who started
-# from the pack profile directly. The template includes a comment for
-# users on a custom intermediate to update by hand.
+# so suggesting `extends: "codex"` is correct for any user who
+# started from the pack profile directly. The template includes a
+# comment for users on a custom intermediate to update by hand.
 PACK_PROFILE="codex"
 
-CAPS=$(jq -r '.fs[] | "  " + (.resolved // .path) + " (" + .access + ")"' "$NONO_CAP_FILE" 2>/dev/null)
-NET=$(jq -r 'if .net_blocked then "blocked" else "allowed" end' "$NONO_CAP_FILE" 2>/dev/null)
+REASON="[nono sandbox] $DISPLAY_PATH was blocked by the OS sandbox — not Codex, not TCC, not Unix permissions. See additional context for diagnosis and the two options."
 
-REASON="[NONO SANDBOX - PERMISSION DENIED]
+CONTEXT="Sandbox denial detail:
 
-This is a nono sandbox boundary, not a Codex permission, not macOS TCC,
-not a Unix permissions issue. Codex's own approval flow cannot bypass it.
+Run for the precise rule that blocked it:
+  nono why --path $DISPLAY_PATH --op read
 
-Allowed paths:
-$CAPS
-Network: $NET
-"
+Present the user with these two options (and nothing else):
 
-if [ -n "$FAILED_PATH" ]; then
-    REASON+="
-Blocked path: $FAILED_PATH
-"
-fi
+  Option A — quick fix (one-off): exit and restart with the path allowed:
+    nono run --allow $DISPLAY_PATH -- codex
 
-REASON+="
-Two options for the user:
-
-  Option A (quick fix): exit and restart with the path allowed:
-    nono run --allow ${FAILED_PATH:-/path/to/needed} -- codex
-
-  Option B (persistent fix): save this profile to
-  ~/.config/nono/profiles/<chosen-name>.json, then start with:
+  Option B — persistent fix: save this profile to
+  ~/.config/nono/profiles/<chosen-name>.json then start with:
     nono run --profile <chosen-name> -- codex
 
   {
     \"extends\": \"$PACK_PROFILE\",
     \"meta\": { \"name\": \"<chosen-name>\", \"version\": \"1.0.0\" },
-    \"filesystem\": { \"read\": [\"${FAILED_PATH:-/path/to/needed}\"] }
+    \"filesystem\": { \"read\": [\"$DISPLAY_PATH\"] }
   }
-  // ↑ change \"$PACK_PROFILE\" to your active profile if you started
-  //   from a custom one. Use \"read\" for read-only, \"write\" for
-  //   write-only, or \"allow\" for r+w access.
+  // change \"$PACK_PROFILE\" to the user's active profile name if
+  //   they started from a custom one.
+  // use \"read\" for read-only, \"write\" for write-only, or
+  //   \"allow\" for r+w access."
 
-For detailed diagnosis:
-  nono why --path ${FAILED_PATH:-<blocked-path>} --op read"
-
-jq -n --arg reason "$REASON" '{
+jq -n --arg reason "$REASON" --arg ctx "$CONTEXT" '{
   "decision": "block",
   "reason": $reason,
-  "systemMessage": "nono sandbox denial — see reason for diagnosis and options",
+  "systemMessage": "nono sandbox denial",
   "hookSpecificOutput": {
     "hookEventName": "PostToolUse",
-    "additionalContext": $reason
+    "additionalContext": $ctx
   }
 }'

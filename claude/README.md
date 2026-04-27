@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/nono-claude.png" alt="nono claude" width="320" />
+</p>
+
 # claude nono Pack
 
 `claude` is a `nono` package / plugin for Claude Code.
@@ -40,7 +44,7 @@ The pack currently ships:
 - `bin/nono-hook.sh`
 - `bin/nono-hook-bash.sh`
 
-These artifacts are declared in [`package.json`](./package.json) and require `nono` `0.29.0` or newer.
+These artifacts are declared in [`package.json`](./package.json).
 
 ## Package Metadata
 

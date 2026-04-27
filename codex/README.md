@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/nono-codex.png" alt="nono codex" width="320" />
+</p>
+
 # nono pack: codex
 
 Sandbox profile and Codex plugin for running [OpenAI Codex CLI](https://developers.openai.com/codex) inside a [nono](https://nono.sh) security sandbox.
@@ -21,7 +25,7 @@ If the pack isn't already installed, nono will prompt to pull it.
 
 ## Activating the hooks
 
-Codex requires an opt-in feature flag for hooks. Add to `~/.codex/config.toml`:
+Codex requires an opt-in feature flag for hooks. Add the following to `~/.codex/config.toml` (the section header and the key must be on **separate** lines — this is TOML, not a single-line declaration):
 
 ```toml
 [features]

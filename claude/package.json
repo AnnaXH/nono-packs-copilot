@@ -15,6 +15,7 @@
     { "type": "plugin", "path": "hooks/hooks.json" },
     { "type": "plugin", "path": "bin/nono-hook.sh" },
     { "type": "plugin", "path": "bin/nono-hook-bash.sh" },
-    { "type": "plugin", "path": "skills/nono-sandbox/SKILL.md" }
+    { "type": "plugin", "path": "skills/nono-sandbox/SKILL.md" },
+    { "type": "plugin", "path": "assets/nono-claude.png" }
   ]
 }

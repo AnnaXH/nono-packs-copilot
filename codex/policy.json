@@ -9,6 +9,7 @@
   "security": {
     "groups": [
       "codex_macos",
+      "user_caches_macos",
       "node_runtime",
       "rust_runtime",
       "python_runtime",
