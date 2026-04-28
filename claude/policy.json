@@ -29,7 +29,8 @@
     "allow": [
       "$HOME/.claude",
       "$HOME/.cache/claude",
-      "$HOME/.config/nono/profiles"
+      "$HOME/.config/nono/profiles",
+      "/tmp/claude-$UID"
     ],
     "read": [
       "$HOME/.config/nono/packages"
