@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/nono-claude.png" alt="nono claude" width="320" />
+  <img src="./assets/logo.png" alt="nono claude" width="500" />
 </p>
 
 # claude nono Pack
