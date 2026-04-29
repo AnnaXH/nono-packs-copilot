@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/nono-codex.png" alt="nono codex" width="320" />
+  <img src="./assets/logo.png" alt="nono codex" width="600" />
 </p>
 
 # nono pack: codex
@@ -25,14 +25,20 @@ If the pack isn't already installed, nono will prompt to pull it.
 
 ## Activating the hooks
 
-Codex requires an opt-in feature flag for hooks. Add the following to `~/.codex/config.toml` (the section header and the key must be on **separate** lines — this is TOML, not a single-line declaration):
+`nono pull always-further/codex` writes the marketplace registration, the hook entries, and the cache symlink, but leaves your `config.toml` alone — that file often contains user customisations and a clean TOML merge isn't worth the risk of clobbering them. After accepting the install prompt you'll see a one-line reminder if the flag isn't set.
 
-```toml
-[features]
-codex_hooks = true
+## Known issues
+
+Currently codex hooks are quite verbose, so you will see the following logged to the TUI:
+
+```
+• PostToolUse hook (blocked)
+  warning: nono sandbox denial
+  hook context: Sandbox denial.
+.........
 ```
 
-`nono pull always-further/codex` writes the marketplace registration, the hook entries, and the cache symlink, but leaves your `config.toml` alone — that file often contains user customisations and a clean TOML merge isn't worth the risk of clobbering them. After accepting the install prompt you'll see a one-line reminder if the flag isn't set.
+We are aware of this and it is being fixed in codex upstream (kudos OpenAI for being Open with your coding agent) - as soon as those can be toggled off, we will be getting this fixed.
 
 ## Source
 
