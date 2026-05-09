@@ -18,7 +18,7 @@ Outbound connections are allowed. The GitHub token is injected automatically for
 ## Installation
 
 ```bash
-nono pull always-further/copilot-cli --registry https://packs.nono.sh
+nono pull always-further/copilot-cli
 ```
 
 ## Setup
